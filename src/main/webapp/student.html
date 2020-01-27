@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style/style.css">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<div id="wrapper">
+    <div id="menu">
+        <br>
+        <button type="button" onclick="showMyCourses()">
+            My Courses
+        </button>
+        <br>
+        <button type="button" onclick="showApplyForCourses()">
+            Apply for courses
+        </button>
+    </div>
+    <div id="container">
+        <div id="myCourses">
+            <h1>My Courses</h1>
+            <span class="studentName">Course</span>
+            <span class="studentName">Credits</span>
+            <span class="studentName">Grade</span>
+            <span class="studentName">Application Status</span>
+            <div id="courseList">
+
+            </div>
+        </div>
+        <div id="applyForCourses" hidden>
+            <h1>Apply for available courses</h1>
+            <span class="studentName">Course Name</span>
+            <span class="studentName">Course Credits</span>
+            <div id="availableCourseList">
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script>
+    var username = getUrlVars()['username'];
+    var divMyCourses = $('#myCourses')[0];
+    var divApplyForCourses = $('#applyForCourses')[0];
+
+    var divMyCoursesList = $('#courseList')[0];
+    var availableCoursesList = $('#availableCourseList')[0];
+
+    function getCoursesTemplate(item) {
+        var template = [];
+        template.push(
+            '<div class="coursesDiv">',
+            '<span class="studentName">' + item.courseName + '</span>',
+            '<span class="studentName">' + item.courseCredits + '</span>',
+            '<span class="studentName">' + item.currentGrade + '</span>',
+            '<span class="studentName">' + item.status + '</span>',
+            '</div>'
+        );
+        return template
+    }
+
+    function showMyCourses() {
+        divMyCourses.hidden = false;
+        divApplyForCourses.hidden = true;
+
+        var data = new FormData();
+        data.append("username", username);
+
+        $.ajax({
+            url: '/FileUploaderRESTService/rest/api/listStudentCourses',
+            type: "POST",
+            enctype: 'multipart/form-data',
+            data: data,
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function (data) {
+                console.log(data)
+                var htmlString = '';
+                for (i in data) {
+                    var item = [];
+                    item.courseName = data[i].courseName;
+                    item.courseCredits = data[i].courseCredits;
+                    item.currentGrade = data[i].grade !== 0 ? data[i].grade : 'No Grade';
+                    item.status = data[i].status;
+
+                    var htmlString = htmlString + getCoursesTemplate(item).join('');
+                }
+                divMyCoursesList.innerHTML = htmlString;
+            },
+            error: function (xhr, text, error) {
+                alert('Error: ' + error);
+            }
+        });
+
+    }
+
+    showMyCourses();
+
+    function getApplicationTemplate(item) {
+        var template = [];
+        template.push(
+            '<div class="coursesDiv">',
+            '<span class="studentName">' + item.courseName + '</span>',
+            '<span class="studentName">' + item.courseCredits + '</span>',
+            '<button onclick="applyForCourse(\'' + item.username + '\',\'' + item.courseId + '\')">Apply</button>',
+            '</div>'
+        );
+        return template
+    }
+
+    function showApplyForCourses() {
+        divMyCourses.hidden = true;
+        divApplyForCourses.hidden = false;
+
+        var data = new FormData();
+        data.append("userName", username);
+
+        $.ajax({
+            url: '/FileUploaderRESTService/rest/api/getAvailableCourses',
+            type: "POST",
+            enctype: 'multipart/form-data',
+            data: data,
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function (data) {
+                console.log(data);
+                var htmlString = '';
+                for (i in data) {
+                    var item = [];
+                    item.courseName = data[i].courseName;
+                    item.courseCredits = data[i].courseCredits;
+
+                    item.courseId = data[i].courseId;
+                    item.username = username;
+                    var htmlString = htmlString + getApplicationTemplate(item).join('');
+                }
+                availableCoursesList.innerHTML = htmlString;
+            },
+            error: function (xhr, text, error) {
+                alert('Error: ' + error);
+            }
+        });
+    }
+
+    function applyForCourse(username, course) {
+        try {
+            var data = new FormData();
+            data.append("userName", username);
+            data.append("courseId", course);
+            $.ajax({
+                url: '/FileUploaderRESTService/rest/api/applyForCourse',
+                type: "POST", // Any URL
+                enctype: 'multipart/form-data',
+                data: data,
+                processData: false,  // Important!
+                contentType: false,
+                cache: false,                // Serialize the form data
+                success: function (data) {
+                    showApplyForCourses();
+                },
+                error: function (xhr, text, error) {              // If 40x or 50x; errors
+                    alert('Error: User does not exist');
+                },
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    function getUrlVars() {
+        var vars = {};
+        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function (m, key, value) {
+            vars[key] = value;
+        });
+        return vars;
+    }
+</script>
+</html>

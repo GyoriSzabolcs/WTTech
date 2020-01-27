@@ -1,0 +1,97 @@
+body {
+    background-color: #4c4e4a;
+}
+
+#menu {
+    float: left;
+    width: 20%;
+}
+#container {
+    position: relative;
+    float: left;
+    width: 80%;
+}
+
+#addCourse {
+    position: absolute;
+}
+
+#applicants {
+    position: absolute;
+}
+
+#grade {
+    position: absolute;
+}
+
+.courseName {
+    display: inline-block;
+    width: 300px;
+    margin: 10px;
+}
+.courseCredits {
+    display: inline-block;
+    width: 200px;
+    margin: 10px 10px 10px 0px;
+    text-align: center;
+}
+
+.course {
+    width: 200px;
+    height: 25px;
+}
+
+.columnName {
+    width: 150px;
+    display: inline-block;
+}
+
+#addCourseForm {
+    margin-bottom: 50px;
+}
+
+button {
+    background-color: #3272af; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    width: 250px;
+}
+
+.menuButton {
+    margin-bottom: 50px;
+}
+
+#addCourse, #applicants, #grade, #myCourses, #applyForCourses {
+    width: 80%;
+    margin-right: 250px;
+    padding: 100px;
+    background-color: #fafafa;
+}
+
+#wrapper {
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+.studentName, .studentEmail, .courseNameApplicants, .courseCreditsApplicants {
+    width: 150px;
+    display: inline-block;
+    margin-bottom: 25px;
+    text-align: center;
+    margin-right: 10px;
+}
+
+#loginContainer {
+    margin-right: auto;
+    margin-left: auto;
+    padding: 100px;
+    text-align: center;
+    width: 500px;
+    margin-top: 100px;
+    background-color: #fafafa;
+}

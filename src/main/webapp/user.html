@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="style/style.css">
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+</body>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script>
+    function getUrlVars() {
+        var vars = {};
+        var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+            vars[key] = value;
+        });
+        return vars;
+    }
+    var p = $('#user')[0];
+    var text =  'I am logged in as: '+ getUrlVars()['username'];
+    if("true" === getUrlVars()['isAdmin']){
+        window.location.href = 'admin.html'
+    }
+    if("false" === getUrlVars()['isAdmin']){
+        window.location.href = 'student.html?username='+getUrlVars()['username'];
+    }
+    p.textContent = text;
+
+</script>
+</html>

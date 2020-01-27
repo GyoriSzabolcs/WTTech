@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="style/style.css">
+</head>
+<body>
+<h1 style="text-align: center; color: white">Admin Page</h1>
+<div id="wrapper">
+    <div id="menu">
+        <button type="button" onclick="showAddCourses()" class="menuButton">
+            Add new Course
+        </button>
+        <br>
+        <button type="button" onclick="showApplicants()" class="menuButton">
+            Applicants
+        </button>
+        <br>
+        <button type="button" onclick="showGrade()" class="menuButton">
+            Grade Students
+        </button>
+    </div>
+    <div id="container">
+
+        <!--Add new courses menu begins here-->
+        <div id="addCourse">
+            <div id="addCourseForm">
+                <form method="post" enctype="multipart/form-data" id="formAddCourse">
+                    <span class="columnName">Course Name:</span>
+                    <input name="courseName" class="course" type="text"/><br><br>
+                    <span class="columnName">Course ID:</span>
+                    <input name="courseId" class="course" type="text"/><br><br>
+                    <span class="columnName">Course Credits:</span>
+                    <input name="courseCredits" class="course" type="text"/><br><br>
+                    <button name="submit" type="submit">Add Course</button>
+                </form>
+            </div>
+            <div id="courseListHeader">
+                <h2>List of already existing courses</h2>
+                <span class="courseName">Course Name</span>
+                <span class="courseCredits">Course Credits</span>
+            </div>
+            <div id="courseList">
+
+            </div>
+        </div>
+
+        <!--Applicants menu begins here-->
+        <div id="applicants" hidden>
+            <h2>List of Applicants for courses</h2>
+            <span class="studentName">Student Name</span>
+            <span class="studentEmail">Student Email</span>
+            <span class="courseNameApplicants">Course Name</span>
+            <span class="courseCreditsApplicants">Course Credits</span>
+            <div id="applicantsList">
+
+            </div>
+        </div>
+
+        <!--Grade menu begins here-->
+        <div id="grade" hidden>
+            <h1>Candidates to be graded</h1>
+            <span class="studentName">Name</span>
+            <span class="studentName">Email</span>
+            <span class="studentName">Course</span>
+            <span class="studentName">Credits</span>
+            <span class="studentName">Current Grade</span>
+            <span class="studentName">New Grade</span>
+            <div id="gradingList">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+</body>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script>
+    var divCourses = $('#addCourse')[0];
+    var divApplicants = $('#applicants')[0];
+    var divGrade = $('#grade')[0];
+    var divCourseList = $('#courseList')[0];
+    var divApplicantsList = $('#applicantsList')[0];
+    var divGradingList = $('#gradingList')[0];
+
+    function getCoursesTemplate(item) {
+        var template = [];
+        template.push(
+            '<div class="coursesDiv">',
+            '<span class="courseName">' + item.courseName + '</span>',
+            '<span class="courseCredits">' + item.courseCredits + '</span>',
+            '</div>'
+        );
+        return template
+    }
+
+    function showAddCourses() {
+        divCourses.hidden = false;
+        divApplicants.hidden = true;
+        divGrade.hidden = true;
+
+        $.ajax({
+            url: '/FileUploaderRESTService/rest/api/listCourses',
+            type: "GET",
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function (data) {
+                var htmlString = '';
+                for (i in data) {
+                    var item = [];
+                    item.courseName = data[i].courseName;
+                    item.courseCredits = data[i].courseCredits;
+                    var htmlString = htmlString + getCoursesTemplate(item).join('');
+                }
+                divCourseList.innerHTML = htmlString;
+            },
+            error: function (xhr, text, error) {
+                alert('Error: ' + error);
+            }
+        });
+    }
+
+    showAddCourses();
+
+    var form = document.querySelector('#formAddCourse');
+    form.addEventListener('submit', function (event) {
+        try {
+            var data = new FormData(form);
+            $.ajax({
+                url: '/FileUploaderRESTService/rest/api/addCourse',
+                type: "POST", // Any URL
+                enctype: 'multipart/form-data',
+                data: data,
+                processData: false,  // Important!
+                contentType: false,
+                cache: false,                // Serialize the form data
+                success: function (data) {
+                    showAddCourses();
+                },
+                error: function (xhr, text, error) {              // If 40x or 50x; errors
+                    alert('Error: User does not exist');
+                },
+            });
+        } catch (e) {
+            console.log(e);
+        }
+        event.preventDefault();
+    });
+
+    function getApplicantsTemplate(item) {
+        var template = [];
+        template.push(
+            '<div class="coursesDiv">',
+            '<span class="studentName">' + item.studentName + '</span>',
+            '<span class="studentEmail">' + item.studentEmail + '</span>',
+            '<span class="courseNameApplicants">' + item.courseName + '</span>',
+            '<span class="courseCreditsApplicants">' + item.courseCredits + '</span>',
+            '<button onclick="acceptCandidate(\'' + item.username + '\',\'' + item.courseId + '\')">Accept</button>',
+            '</div>'
+        );
+        return template
+    }
+
+    function showApplicants() {
+        divCourses.hidden = true;
+        divApplicants.hidden = false;
+        divGrade.hidden = true;
+
+        $.ajax({
+            url: '/FileUploaderRESTService/rest/api/getApplicants',
+            type: "GET",
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function (data) {
+                var htmlString = '';
+                for (i in data) {
+                    var item = [];
+                    item.studentName = data[i].realName;
+                    item.studentEmail = data[i].email;
+                    item.courseName = data[i].courseName;
+                    item.courseCredits = data[i].courseCredits;
+
+                    item.username = data[i].username;
+                    item.courseId = data[i].courseId;
+                    var htmlString = htmlString + getApplicantsTemplate(item).join('');
+                }
+                divApplicantsList.innerHTML = htmlString;
+            },
+            error: function (xhr, text, error) {
+                alert('Error: ' + error);
+            }
+        });
+    }
+
+    function acceptCandidate(username, course) {
+        try {
+            var data = new FormData();
+            data.append("userName", username);
+            data.append("courseId", course);
+            $.ajax({
+                url: '/FileUploaderRESTService/rest/api/acceptApplicant',
+                type: "POST", // Any URL
+                enctype: 'multipart/form-data',
+                data: data,
+                processData: false,  // Important!
+                contentType: false,
+                cache: false,                // Serialize the form data
+                success: function (data) {
+                    showApplicants();
+                },
+                error: function (xhr, text, error) {              // If 40x or 50x; errors
+                    alert('Error: User does not exist');
+                },
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    function gradeCandidate(username, course) {
+        try {
+            var data = new FormData();
+            var gradeText = document.getElementsByName('courseGrade' + username + course)[0].value
+            data.append("userName", username);
+            data.append("courseId", course);
+            data.append("courseGrade", gradeText);
+            $.ajax({
+                url: '/FileUploaderRESTService/rest/api/gradeCandidate',
+                type: "POST", // Any URL
+                enctype: 'multipart/form-data',
+                data: data,
+                processData: false,  // Important!
+                contentType: false,
+                cache: false,                // Serialize the form data
+                success: function (data) {
+                    showGrade();
+                },
+                error: function (xhr, text, error) {              // If 40x or 50x; errors
+                    alert('Error: User does not exist');
+                },
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+
+    function getGradingTemplate(item) {
+        var template = [];
+        template.push(
+            '<div class="coursesDiv">',
+            '<span class="studentName">' + item.studentName + '</span>',
+            '<span class="studentName">' + item.studentEmail + '</span>',
+            '<span class="studentName">' + item.courseName + '</span>',
+            '<span class="studentName">' + item.courseCredits + '</span>',
+            '<span class="studentName">' + item.currentGrade + '</span>',
+            '<input name="courseGrade' + item.username + item.courseId +'" class="studentName" type="text" />',
+            '<button onclick="gradeCandidate(\'' + item.username + '\',\'' + item.courseId + '\')">Accept</button>',
+            '</div>'
+        );
+        return template
+    }
+
+    function showGrade() {
+        divCourses.hidden = true;
+        divApplicants.hidden = true;
+        divGrade.hidden = false;
+
+        $.ajax({
+            url: '/FileUploaderRESTService/rest/api/getGradingCandidates',
+            type: "GET",
+            processData: false,
+            contentType: false,
+            cache: false,
+            success: function (data) {
+                console.log(data);
+                var htmlString = '';
+                for (i in data) {
+                    if (data !== "null") {
+                        var item = [];
+                        item.studentName = data[i].realName;
+                        item.studentEmail = data[i].email;
+                        item.courseName = data[i].courseName;
+                        item.courseCredits = data[i].courseCredits;
+                        item.currentGrade = data[i].courseGrade !== 0 ? data[i].courseGrade : 'No Grade';
+
+                        console.log(item.currentGrade)
+
+                        item.username = data[i].username;
+                        item.courseId = data[i].courseId;
+                        var htmlString = htmlString + getGradingTemplate(item).join('');
+                        divGradingList.innerHTML = htmlString;
+                    } else {
+                        htmlString = '<h1 style="text-align: center">There are no students to grade right now!</h1>';
+                    }
+                    divGradingList.innerHTML = htmlString;
+                }
+            },
+            error: function (xhr, text, error) {
+                alert('Error: ' + error);
+            }
+        });
+
+    }
+
+</script>
+</html>
